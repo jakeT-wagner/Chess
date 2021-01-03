@@ -1,3 +1,5 @@
 # Chess
 
-Ongoing project to create a two-player chess game. Currently working on the game mechanics. Plan to have separate piece types be children classes to the parent Piece class. I am doing this because this game works by selecting a piece, and then displaying the available moves to the user, who can then select a square to move onto. So, for different piece types, there must be a way variably return the possible valid moves to the user. 
+Ongoing project to create a two-player chess game. Have been able to make a lot of the game, excluding check, checkmate, and other king movement checks. En passant is also currently not included in the game. 
+
+Created using pygame in python and utilizing OOP. Made a parent class Piece, which has children for the different kinds of chess pieces. Each child has a different method for finding valid moves; however, a few other pieces have other piece-specific methods. 
