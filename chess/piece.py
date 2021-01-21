@@ -47,7 +47,7 @@ class King(Piece):
         self.calc_pos()
         self.moved = True
 
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board, krow, kcol):
         moves = {}
         
         for row in range(3):
@@ -96,7 +96,7 @@ class King(Piece):
 
 
 class Knight(Piece):
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board, krow, kcol):
         moves = {}
         for i in range(2):
             adder2 = 2 * (-1)**i
@@ -141,7 +141,7 @@ class Rook(Piece):
         self.calc_pos()
         self.moved = True
 
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board, krow, kcol):
         moves = {}
         search_left = True
         search_right = True
@@ -196,7 +196,7 @@ class Rook(Piece):
 
 
 class Bishop(Piece):
-    def get_valid_moves(self,board):
+    def get_valid_moves(self, board, krow, kcol):
         moves = {}
         search_45 = True#degrees
         search_135 = True
@@ -267,10 +267,10 @@ class Bishop(Piece):
 
 
 class Queen(Piece):
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board, krow, kcol):
         moves = {}
-        moves.update(Bishop(self.row,self.col,self.color,self.image).get_valid_moves(board))
-        moves.update(Rook(self.row,self.col,self.color,self.image).get_valid_moves(board))
+        moves.update(Bishop(self.row,self.col,self.color,self.image).get_valid_moves(board, krow, kcol))
+        moves.update(Rook(self.row,self.col,self.color,self.image).get_valid_moves(board, krow, kcol))
         return moves
 
 class Pawn(Piece):
@@ -301,7 +301,7 @@ class Pawn(Piece):
                 image = WHQUEN
             board.board[row][col] = Queen(row,col,color,image)
     
-    def get_valid_moves(self, board): #where can this piece go?
+    def get_valid_moves(self, board, krow, kcol): #where can this piece go?
         #note, board here must call board.board[i][j] to access a piece
         moves = {} 
         direction = 0

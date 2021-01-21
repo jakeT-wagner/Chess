@@ -79,3 +79,47 @@ class Board:
         #destroyer's location
         piece.move(row,col) 
         piece.change_queen(self) #will only occur if it is a pawn that reaches the end of the road
+
+    def set_grid(self, grid):
+        self.board = grid
+
+    def check_check(self, row, col, color, image):
+        attackers = {}
+        final_attackers = {}
+        is_check = False
+
+        attackers.update(Knight(row,col, color, image).get_valid_moves(self,row,col))
+        self.remove_empty_moves(attackers, Knight)
+        final_attackers.update(attackers)
+
+        attackers.update(Bishop(row,col, color, image).get_valid_moves(self,row,col))
+        self.remove_empty_moves(attackers, Bishop)
+        final_attackers.update(attackers)
+
+        attackers.update(Queen(row,col, color, image).get_valid_moves(self, row, col))
+        self.remove_empty_moves(attackers, Queen)
+        final_attackers.update(attackers)
+
+        attackers.update(Rook(row,col, color, image).get_valid_moves(self, row, col))
+        self.remove_empty_moves(attackers, Rook)
+        final_attackers.update(attackers)
+
+        attackers.update(Pawn(row,col, color, image).get_valid_moves(self, row, col))
+        self.remove_empty_moves(attackers, Pawn)
+        final_attackers.update(attackers)
+
+        if len(final_attackers) != 0:
+            is_check = True
+        return is_check, attackers
+        
+    def remove_empty_moves(self, mydict, piece_type):
+        delete = []
+        for v in mydict:
+            if len(mydict[v]) == 0:
+                delete.append(v)
+            elif not isinstance(mydict[v][0], piece_type):
+                delete.append(v)
+        for i in delete:
+            del mydict[i]
+        return mydict
+    

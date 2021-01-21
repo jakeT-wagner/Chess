@@ -1,7 +1,8 @@
 import pygame
-from .constants import WHITE,BLACK, BLUE, SQUARE_SIZE
+from .constants import WHITE,BLACK, BLUE, SQUARE_SIZE, BLKING
 from .board import Board
 from .piece import King
+from copy import deepcopy
 
 class Game:
     def __init__(self, win):
@@ -9,8 +10,12 @@ class Game:
         self.board = Board(win)
         self.turn = WHITE
         self.valid_moves = {}
-        self.valid_bl_king = {}
-        self.valid_wh_king = {}
+        self.wh_attackers = {}
+        self.bl_attackers = {}
+        self.bl_king_row = 0
+        self.bl_king_col = 4
+        self.wh_king_row = 7
+        self.wh_king_col = 4
         self.bl_check = False
         self.wh_check = False #white is in Check
         self.selected = None #Is a piece selected?
@@ -38,15 +43,6 @@ class Game:
         #can use its get_valid_moves and return them
         if self.selected:
             result = self._move(row,col) 
-            '''if check:
-                if piece.color == WHITE:
-                    self.bl_check = False
-                else:
-                    self.wh_check = True ''' #need to have a way to determine check. Maybe after a piece moves, check its valid moves
-                                             #against the opposing player's king's valid moves. If they intersect, remove those moves from
-                                             #the king's moves. And if it puts the king in check, create an alert and only allow moves
-                                             #getting out of check. Maybe a hash map of all pieces on a team. Determine all possible moves
-                                             #from all possible pieces and then see if any can get the king out of check, if not that is checkmate
             if not result:
                 self.selected = None
                 self.select(row,col)
@@ -56,31 +52,72 @@ class Game:
         piece = self.board.get_piece(row,col)
         if piece != 0 and piece.color == self.turn: #if a piece is here and the color is for the player who is moving now
             self.selected = piece
-            self.valid_moves = piece.get_valid_moves(self.board)
-            
-            #stores the valid moves of a king. These will be compared later with the new valid moves of piece for check 
-            if isinstance(piece, King):
-                if piece.color == WHITE:
-                    self.valid_wh_king = self.valid_moves
-                else:
-                    self.valid_bl_king = self.valid_moves
-                    print(self.valid_bl_king)
+            if self.turn == WHITE:
+                king_row = self.wh_king_row
+                king_col = self.wh_king_col
+            else:
+                king_row = self.bl_king_row
+                king_col = self.bl_king_col
+            self.valid_moves = piece.get_valid_moves(self.board, king_row, king_col)
 
             return True
         return False
 
     def _move(self,row,col):
-        piece = self.board.get_piece(row,col) 
+        '''
+        if self.selected.color == BLACK:
+            king_row = self.bl_king_row
+            king_col = self.bl_king_col
+        else:
+            king_row = self.wh_king_row
+            king_col = self.bl_king_row
+        if not self.check_valid_move(self.selected,row,col, king_row, king_col):
+        '''
         if self.selected and (row,col) in self.valid_moves:
-            if self.valid_moves[(row,col)]:
+            if self.valid_moves[(row,col)]: #not an empty square
                 self.board.remove(self.valid_moves[(row,col)][0]) #index zero stores the piece to be removed.
-                                                                  #in the case of a castle, the second index stores the new location of the rook
+                                                                #in the case of a castle, the second index stores the new location of the rook
                 if len(self.valid_moves[(row,col)]) > 1:
-                    if self.valid_moves[(row,col)][1]:
                         self.board.create_rook(self.valid_moves[(row,col)][1])
             self.board.move(self.selected, row, col) 
+
+            if isinstance(self.selected, King):
+                if self.selected.color == WHITE:
+                    self.wh_king_row = row
+                    self.wh_king_col = col
+                else:
+                    self.bl_king_row = row
+                    self.bl_king_row = row
+            #checks if either team is in check
+            self.bl_check, self.bl_attackers = self.board.check_check(self.bl_king_row, self.bl_king_col, BLACK, BLKING)
+            if self.bl_check == True:
+                print("CHECK!, black")
+            self.wh_check, self.wh_attackers = self.board.check_check(self.wh_king_row, self.wh_king_col, WHITE, BLKING)
+            if self.wh_check == True:
+                print("CHECK!, white")
             self.change_turn()
         else:
             return False
         
         return True
+        '''
+        else:
+            print("this puts your king in check")
+            return False
+        '''
+        
+    
+    def check_valid_move(self,piece_to_move,row,col, king_row, king_col):
+        #don;t need to check for legitimacy of the move, just if by making this move, the player's king will be subject to check
+        is_check = False
+        temp_board = Board(self.win)
+        temp_grid = deepcopy(self.board.board)
+        #CANT COPY FOR SOME REASON!!!!!!!!!
+        temp_board.set_grid(temp_grid)
+        piece_removed = temp_board.get_piece(row,col)  
+        if piece_removed != 0:
+            temp_board.remove(piece_removed)
+        temp_board.move(temp_board.get_piece(piece_to_move.row, piece_to_move.col), row, col) 
+        is_check, attackers = temp_board.check_check(king_row, king_col, piece_to_move.color, BLKING)
+        
+        return is_check
